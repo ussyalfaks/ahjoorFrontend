@@ -14,8 +14,8 @@ const Index = () => {
       {/* Hero Section */}
       <section className="flex items-center justify-center min-h-screen px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center space-y-8">
-          <div className="space-y-6">
-            <h1 className="text-2xl md:text-7xl font-bold text-white leading-tight">
+          <div className="mt-20">
+            <h1 className="text-3xl mt-7 md:pt-0 md:text-7xl font-bold text-white leading-tight">
               Save Together,
               <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent block mt-2">
                 Grow Together
