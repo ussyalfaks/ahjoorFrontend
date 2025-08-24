@@ -9,7 +9,9 @@ Ahjoor Savings is a community savings platform that helps people save money toge
 
 Built with Next.js, Tailwind CSS, and powered by Starknet blockchain technology for security and transparency.
 
-CONTRACT_ADDRESS = "0x0794fb034e45f9a538ea4dfbbc93378fe49e32542ad55425de69832ec905c853";
+### CONTRACT_ADDRESS = "0x0794fb034e45f9a538ea4dfbbc93378fe49e32542ad55425de69832ec905c853";
+
+### CONTRACT REPO= https://github.com/ussyalfaks/ahjoor
 ---
 
 ## 🚀 How to Run Locally
