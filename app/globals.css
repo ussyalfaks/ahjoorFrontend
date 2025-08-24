@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+
+/* AhjoorCircle Design System - Direct Colors */
+
+body {
+  background-color: #fefefe;
+  color: #1f2937;
+  font-family: system-ui, sans-serif;
+}
+
+.dark body {
+  background-color: #111827;
+  color: #f9fafb;
+}
