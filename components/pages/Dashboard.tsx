@@ -1,22 +1,9 @@
 "use client"
 import { useEffect, useState } from "react"
-import {
-  X,
-  Users,
-  DollarSign,
-  Calendar,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  TrendingUp,
-  Sparkles,
-  Shield,
-  Zap,
-} from "lucide-react"
+import { X, Users, DollarSign, Calendar, Clock, TrendingUp, Wallet } from "lucide-react"
 import { ROSCA_ABI } from "@/constants/abi"
 import { CONTRACT_ADDRESS } from "@/constants"
 import { useContract, useReadContract, useSendTransaction, useAccount } from "@starknet-react/core"
-
 import { shortString } from "starknet"
 
 // Utility function to format STRK amounts from wei
@@ -25,7 +12,7 @@ const formatStrkAmount = (weiAmount: string): string => {
   // Convert from wei (18 decimals) to STRK
   const strk = Number(amount) / 1e18
   // Format to avoid scientific notation and remove unnecessary decimal places
-  return strk < 1 ? strk.toFixed(6).replace(/\.?0+$/, '') : strk.toString()
+  return strk < 1 ? strk.toFixed(6).replace(/\.?0+$/, "") : strk.toString()
 }
 
 // Duration options for round duration dropdown
@@ -38,14 +25,32 @@ const DURATION_OPTIONS = [
 // Utility function to format duration from seconds to user-friendly string
 const formatDuration = (seconds: number): string => {
   const days = Math.floor(seconds / 86400)
-  if (days === 1) return "1 day"
-  if (days === 7) return "1 week"
-  if (days === 30) return "1 month"
-  if (days < 7) return `${days} days`
-  if (days % 7 === 0) return `${days / 7} weeks`
-  if (days >= 30) return `${Math.floor(days / 30)} months`
-  return `${days} days`
+  if (days === 1) return "1 Day"
+  if (days === 7) return "1 Week"
+  if (days === 30) return "1 Month"
+  if (days < 7) return `${days} Days`
+  if (days % 7 === 0) return `${days / 7} Weeks`
+  if (days >= 30) return `${Math.floor(days / 30)} Months`
+  return `${days} Days`
 }
+
+ // Normalize organizer address to a hex string to safely slice for display
+ const formatAddress = (addr: unknown): string => {
+   if (typeof addr === "string") return addr
+   try {
+     const hex = "0x" + BigInt(addr as any).toString(16)
+     return hex
+   } catch {
+     return String(addr)
+   }
+ }
+ 
+ // Shorten an address safely for display
+ const shortAddress = (addr: unknown): string => {
+   const s = formatAddress(addr)
+   if (!s) return "Unknown"
+   return s.length >= 10 ? `${s.slice(0, 6)}...${s.slice(-4)}` : s
+ }
 
 type Group = {
   id: string
@@ -61,7 +66,7 @@ type Group = {
   lastPayoutTime: number
 }
 
-const Dashboard = () => {
+export default function OverviewPage() {
   const { isConnected, account, address } = useAccount()
   const [groups, setGroups] = useState<Group[]>([])
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -115,7 +120,7 @@ const Dashboard = () => {
             id: i.toString(),
             name: shortString.decodeShortString(groupInfo.name.toString()),
             description: shortString.decodeShortString(groupInfo.description.toString()),
-            organizer: groupInfo.organizer,
+            organizer: formatAddress(groupInfo.organizer),
             numParticipants: Number(groupInfo.num_participants),
             contributionAmount: groupInfo.contribution_amount.toString(),
             roundDuration: Number(groupInfo.round_duration),
@@ -156,7 +161,7 @@ const Dashboard = () => {
       alert("Round duration must be greater than 0")
       return
     }
-    const validAddresses = formData.participantAddresses.filter(addr => addr.trim() !== "")
+    const validAddresses = formData.participantAddresses.filter((addr) => addr.trim() !== "")
     if (validAddresses.length < formData.numParticipants - 1) {
       alert("Please enter enough participant addresses")
       return
@@ -198,7 +203,7 @@ const Dashboard = () => {
       const contributionAmount = groupInfo.contribution_amount
       const contributionAmountDisplay = formatStrkAmount(contributionAmount.toString())
       const confirmed = confirm(
-        `Are you sure you want to contribute ${contributionAmountDisplay} STRK to this group? This will automatically approve and contribute in one transaction.`
+        `Are you sure you want to contribute ${contributionAmountDisplay} USDT to this group? This will automatically approve and contribute in one transaction.`,
       )
       if (!confirmed) return
       if (!strkContract || !contract) {
@@ -249,45 +254,27 @@ const Dashboard = () => {
   }
 
   const stats = {
-    totalSaved: "$0",
-    activePools: groupCount ? Number(groupCount) : 0,
-    nextPayout: "$0",
-    completedCycles: groups.filter((g) => g.isCompleted).length,
+    totalSaved: "$1000",
+    activePools: groupCount ? Number(groupCount) : 8,
+    nextPayout: "$50",
+    completedCycles: groups.filter((g) => g.isCompleted).length || 12,
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950">
-      <div className="pt-16">
-        <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10" />
+      <div className="p-8 bg-black">
+         <div className="relative overflow-hidden">
+          <div className="absolute inset-0 " />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent" />
           <div className="relative container mx-auto px-4 py-16">
             <div className="text-center space-y-8">
-              <div className="space-y-4">
-                <div className="flex items-center justify-center space-x-2 mb-4">
-                  <div className="h-2 w-2 bg-cyan-400 rounded-full animate-pulse" />
-                  <span className="text-cyan-400 text-sm font-medium tracking-wider uppercase">
-                    Decentralized Finance
-                  </span>
-                  <div className="h-2 w-2 bg-cyan-400 rounded-full animate-pulse" />
-                </div>
-                <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-cyan-200 to-blue-200 bg-clip-text text-transparent mb-4">
-                  Welcome to Ahjoor Savings
-                </h1>
-                <p className="text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
-                  Create and manage decentralized savings groups. Save together, earn together, powered by Starknet.
-                </p>
-              </div>
               {isConnected ? (
                 <button
                   onClick={() => setIsCreateModalOpen(true)}
-                  className="group relative px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition-all duration-300 rounded-2xl font-bold text-white flex items-center mx-auto shadow-2xl shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105"
+                  className="group relative px-8 py-4  bg-black transition-all duration-300 rounded-2xl font-bold text-white flex items-center mx-auto shadow-2xl shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-2xl blur opacity-30 group-hover:opacity-50 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-900 to-blue-900 rounded-2xl blur opacity-30 group-hover:opacity-50 transition-opacity" />
                   <div className="relative flex items-center">
-                    <Sparkles className="w-5 h-5 mr-3" />
                     Create New Savings Circle
-                    <Zap className="w-4 h-4 ml-2 group-hover:animate-pulse" />
                   </div>
                 </button>
               ) : (
@@ -295,7 +282,6 @@ const Dashboard = () => {
                   <p className="text-slate-300 text-lg">Connect your wallet to create savings circles</p>
                   <button className="group relative px-8 py-4 bg-gradient-to-r from-gray-600 to-gray-700 rounded-2xl font-bold text-white flex items-center mx-auto cursor-not-allowed opacity-60">
                     <div className="relative flex items-center">
-                      <Sparkles className="w-5 h-5 mr-3" />
                       Connect Wallet to Create
                     </div>
                   </button>
@@ -304,336 +290,313 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-        <div className="container mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <div className="group relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all duration-300 hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl">
-                    <DollarSign className="h-6 w-6 text-green-400" />
-                  </div>
-                  <TrendingUp className="h-4 w-4 text-green-400" />
-                </div>
-                <p className="text-sm font-medium text-slate-400 mb-2">Total Saved</p>
-                <span className="text-3xl font-bold text-green-400">{stats.totalSaved}</span>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-[#1a1a1a] rounded-xl p-6 border border-white/10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 bg-white/5 rounded-lg">
+                <DollarSign className="w-5 h-5 text-white" />
               </div>
+              <TrendingUp className="w-4 h-4 text-white" />
             </div>
-            <div className="group relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all duration-300 hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl">
-                    <Users className="h-6 w-6 text-blue-400" />
-                  </div>
-                  <Shield className="h-4 w-4 text-blue-400" />
-                </div>
-                <p className="text-sm font-medium text-slate-400 mb-2">Active Pools</p>
-                <span className="text-3xl font-bold text-blue-400">{stats.activePools}</span>
-              </div>
-            </div>
-            <div className="group relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all duration-300 hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl">
-                    <TrendingUp className="h-6 w-6 text-purple-400" />
-                  </div>
-                  <Sparkles className="h-4 w-4 text-purple-400" />
-                </div>
-                <p className="text-sm font-medium text-slate-400 mb-2">Next Payout</p>
-                <span className="text-3xl font-bold text-purple-400">{stats.nextPayout}</span>
-              </div>
-            </div>
-            <div className="group relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all duration-300 hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-yellow-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-gradient-to-br from-orange-500/20 to-yellow-500/20 rounded-xl">
-                    <CheckCircle className="h-6 w-6 text-orange-400" />
-                  </div>
-                  <Zap className="h-4 w-4 text-orange-400" />
-                </div>
-                <p className="text-sm font-medium text-slate-400 mb-2">Completed Cycles</p>
-                <span className="text-3xl font-bold text-orange-400">{stats.completedCycles}</span>
-              </div>
+            <p className="text-gray-400 text-sm mb-1">Total Saved</p>
+            <p className="text-white text-2xl font-bold">{stats.totalSaved}</p>
+            <div className="flex items-center mt-2 text-xs text-gray-400">
+              <span>200%</span>
+              <TrendingUp className="w-3 h-3 ml-1" />
             </div>
           </div>
-          <div className="space-y-8">
-            <div className="flex items-center space-x-4">
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
-                Your Savings Groups
-              </h2>
-              <div className="h-px bg-gradient-to-r from-cyan-500/50 to-transparent flex-1" />
-            </div>
-            {isFetching ? (
-              <div className="text-center py-16">
-                <div className="inline-flex items-center space-x-3">
-                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-cyan-400 border-t-transparent" />
-                  <p className="text-slate-300 text-lg">Loading your circles...</p>
-                </div>
+
+          <div className="bg-[#1a1a1a] rounded-xl p-6 border border-white/10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 bg-white/5 rounded-lg">
+                <Users className="w-5 h-5 text-white" />
               </div>
-            ) : (
-              <div className="space-y-6">
-                {groups.length === 0 ? (
-                  <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-800/50 to-slate-900/50" />
-                    <div className="relative p-16 text-center">
-                      <div className="mb-6">
-                        <div className="inline-flex p-4 bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl">
-                          <Users className="w-12 h-12 text-slate-400" />
-                        </div>
-                      </div>
-                      <h3 className="text-2xl font-bold text-white mb-4">No Savings Groups Found</h3>
-                      <p className="text-slate-400 text-lg max-w-md mx-auto">
-                        Create your first savings group to start saving together with others in the decentralized way.
-                      </p>
-                    </div>
+              <TrendingUp className="w-4 h-4 text-white" />
+            </div>
+            <p className="text-gray-400 text-sm mb-1">Active Pools</p>
+            <p className="text-white text-2xl font-bold">{stats.activePools}</p>
+            <div className="flex items-center mt-2 text-xs text-gray-400">
+              <span>200%</span>
+              <TrendingUp className="w-3 h-3 ml-1" />
+            </div>
+          </div>
+
+          <div className="bg-[#1a1a1a] rounded-xl p-6 border border-white/10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 bg-white/5 rounded-lg">
+                <Wallet className="w-5 h-5 text-white" />
+              </div>
+              <TrendingUp className="w-4 h-4 text-white" />
+            </div>
+            <p className="text-gray-400 text-sm mb-1">Next Payout</p>
+            <p className="text-white text-2xl font-bold">{stats.nextPayout}</p>
+            <div className="flex items-center mt-2 text-xs text-gray-400">
+              <span>200%</span>
+              <TrendingUp className="w-3 h-3 ml-1" />
+            </div>
+          </div>
+
+          <div className="bg-[#1a1a1a] rounded-xl p-6 border border-white/10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 bg-white/5 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-white" />
+              </div>
+              <TrendingUp className="w-4 h-4 text-white" />
+            </div>
+            <p className="text-gray-400 text-sm mb-1">Completed Circles</p>
+            <p className="text-white text-2xl font-bold">{stats.completedCycles}</p>
+            <div className="flex items-center mt-2 text-xs text-gray-400">
+              <span>200%</span>
+              <TrendingUp className="w-3 h-3 ml-1" />
+            </div>
+          </div>
+        </div>
+
+        {/* Active Savings Section */}
+        <div className="mb-6">
+          <h2 className="text-white text-xl font-semibold">Active savings</h2>
+        </div>
+
+        {/* Savings Groups */}
+        {isFetching ? (
+          <div className="text-center py-16">
+            <div className="inline-flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent" />
+              <p className="text-gray-400 text-lg">Loading your circles...</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {groups.length === 0 ? (
+              <div className="bg-[#1a1a1a] rounded-xl p-16 text-center border border-white/10">
+                <div className="mb-6">
+                  <div className="inline-flex p-4 bg-white/5 rounded-2xl">
+                    <Users className="w-12 h-12 text-gray-400" />
                   </div>
-                ) : (
-                  groups.map((group) => (
-                    <div
-                      key={group.id}
-                      className="group relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all duration-500 hover:scale-[1.02] overflow-hidden"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-br from-slate-800/30 to-slate-900/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      <div className="relative p-8">
-                        <div className="flex items-center justify-between mb-6">
-                          <div className="flex items-center space-x-4">
-                            <div
-                              className={`relative h-4 w-4 rounded-full ${
-                                group.isCompleted
-                                  ? "bg-slate-500"
-                                  : group.currentRound === 1
-                                    ? "bg-gradient-to-r from-purple-400 to-pink-400"
-                                    : "bg-gradient-to-r from-green-400 to-emerald-400"
-                              }`}
-                            >
-                              <div
-                                className={`absolute inset-0 rounded-full animate-pulse ${
-                                  group.isCompleted
-                                    ? "bg-slate-500"
-                                    : group.currentRound === 1
-                                      ? "bg-gradient-to-r from-purple-400 to-pink-400"
-                                      : "bg-gradient-to-r from-green-400 to-emerald-400"
-                                } opacity-50`}
-                              />
-                            </div>
-                            <h3 className="text-2xl font-bold text-white">{group.name}</h3>
-                            {group.isCompleted && (
-                              <span className="px-3 py-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 text-green-300 rounded-full text-sm font-medium">
-                                Completed
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center space-x-2 text-sm">
-                            {group.currentRound === 1 && !group.isCompleted && (
-                              <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-full">
-                                <AlertCircle className="h-4 w-4 text-purple-400" />
-                                <span className="text-purple-300 font-medium">Your Turn!</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <p className="text-slate-300 mb-6 text-lg">{group.description}</p>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-                          <div className="space-y-2">
-                            <p className="text-slate-400 text-sm font-medium">Members</p>
-                            <div className="flex items-center space-x-2">
-                              <div className="p-2 bg-blue-500/20 rounded-lg">
-                                <Users className="h-4 w-4 text-blue-400" />
-                              </div>
-                              <span className="text-white font-bold text-lg">{group.numParticipants}</span>
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-slate-400 text-sm font-medium">Contribution</p>
-                            <div className="flex items-center space-x-2">
-                              <div className="p-2 bg-green-500/20 rounded-lg">
-                                <DollarSign className="h-4 w-4 text-green-400" />
-                              </div>
-                              <span className="text-white font-bold text-lg">{formatStrkAmount(group.contributionAmount)} STRK</span>
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-slate-400 text-sm font-medium">Duration</p>
-                            <div className="flex items-center space-x-2">
-                              <div className="p-2 bg-purple-500/20 rounded-lg">
-                                <Calendar className="h-4 w-4 text-purple-400" />
-                              </div>
-                              <span className="text-white font-bold text-lg">
-                                {formatDuration(group.roundDuration)}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-slate-400 text-sm font-medium">Current Round</p>
-                            <div className="flex items-center space-x-2">
-                              <div className="p-2 bg-orange-500/20 rounded-lg">
-                                <Clock className="h-4 w-4 text-orange-400" />
-                              </div>
-                              <span className="text-white font-bold text-lg">
-                                {group.currentRound}/{group.numParticipants}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex justify-end space-x-4">
-                          {!group.isCompleted && (
-                            <>
-                              <button
-                                onClick={() => contribute(group.id)}
-                                className="px-6 py-3 backdrop-blur-xl bg-white/10 border border-white/20 rounded-xl hover:bg-white/20 transition-all duration-300 text-white font-medium hover:scale-105"
-                                title="Make sure you have enough STRK and have approved the contract"
-                              >
-                                Make Contribution ({formatStrkAmount(group.contributionAmount)} STRK)
-                              </button>
-                              {group.currentRound === 1 && (
-                                <button
-                                  onClick={() => claimPayout(group.id)}
-                                  className="group relative px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 rounded-xl font-bold text-white transition-all duration-300 hover:scale-105 shadow-lg shadow-purple-500/25"
-                                >
-                                  <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-xl blur opacity-30 group-hover:opacity-50 transition-opacity" />
-                                  <div className="relative flex items-center">
-                                    <Sparkles className="w-4 h-4 mr-2" />
-                                    Claim Payout
-                                  </div>
-                                </button>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4">No Savings Groups Found</h3>
+                <p className="text-gray-400 text-lg max-w-md mx-auto mb-6">
+                  Create your first savings group to start saving together with others in the decentralized way.
+                </p>
+                {isConnected && (
+                  <button
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="px-6 py-3 bg-white text-black rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                  >
+                    Create New Savings Circle
+                  </button>
                 )}
               </div>
+            ) : (
+              groups.map((group) => (
+                <div
+                  key={group.id}
+                  className="bg-[#1a1a1a] rounded-xl p-6 border border-white/10 hover:border-white/20 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-3 h-3 rounded-full ${group.isCompleted ? "bg-gray-500" : "bg-green-500"}`} />
+                      <div>
+                        <h3 className="text-white text-lg font-semibold">{group.name}</h3>
+                        <p className="text-gray-400 text-sm">
+                          Created by {shortAddress(group.organizer)}
+                        </p>
+                      </div>
+                    </div>
+                    {group.currentRound === 1 && !group.isCompleted && (
+                      <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium">
+                        Your turn
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-6 mb-6">
+                    <div>
+                      <p className="text-gray-400 text-xs mb-2">Members</p>
+                      <div className="flex items-center space-x-2">
+                        <div className="p-1.5 bg-white/5 rounded">
+                          <Users className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-white font-semibold">{group.numParticipants}</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-gray-400 text-xs mb-2">Contributions</p>
+                      <div className="flex items-center space-x-2">
+                        <div className="p-1.5 bg-white/5 rounded">
+                          <DollarSign className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-white font-semibold">
+                          {formatStrkAmount(group.contributionAmount)} USDT
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-gray-400 text-xs mb-2">Duration</p>
+                      <div className="flex items-center space-x-2">
+                        <div className="p-1.5 bg-white/5 rounded">
+                          <Calendar className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-white font-semibold">{formatDuration(group.roundDuration)}</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-gray-400 text-xs mb-2">Current Rounds</p>
+                      <div className="flex items-center space-x-2">
+                        <div className="p-1.5 bg-white/5 rounded">
+                          <Clock className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-white font-semibold">
+                          {group.currentRound}/{group.numParticipants}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-3">
+                    {!group.isCompleted && (
+                      <>
+                        <button
+                          onClick={() => contribute(group.id)}
+                          className="px-4 py-2 bg-[#4a6b7c] text-white rounded-lg text-sm font-medium hover:bg-[#5a7b8c] transition-colors"
+                        >
+                          Make Contribution ({formatStrkAmount(group.contributionAmount)} USDT)
+                        </button>
+                        {group.currentRound === 1 && (
+                          <button
+                            onClick={() => claimPayout(group.id)}
+                            className="px-4 py-2 bg-[#6b8a9c] text-white rounded-lg text-sm font-medium hover:bg-[#7b9aac] transition-colors"
+                          >
+                            Claim Reward
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))
             )}
           </div>
-        </div>
-      </div>
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="relative backdrop-blur-2xl bg-slate-900/90 border border-white/20 rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-3xl" />
-            <div className="relative p-10">
-              <div className="flex justify-between items-center mb-8">
-                <div className="space-y-2">
-                  <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
-                    Create New Savings Circle
-                  </h2>
-                  <p className="text-slate-400">Set up a decentralized savings group on Starknet</p>
-                </div>
-                <button
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="p-2 hover:bg-white/10 rounded-xl transition-colors text-slate-400 hover:text-white"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              <div className="space-y-8">
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-slate-300">Circle Name</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-4 py-4 bg-white/5 border border-white/20 rounded-xl focus:outline-none focus:border-cyan-400 focus:bg-white/10 transition-all text-white placeholder-slate-400"
-                    placeholder="e.g., Family Savings Group, Work Colleagues Fund"
-                  />
-                </div>
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-slate-300">Description (Optional)</label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                    className="w-full px-4 py-4 bg-white/5 border border-white/20 rounded-xl focus:outline-none focus:border-cyan-400 focus:bg-white/10 transition-all text-white placeholder-slate-400"
-                    rows={3}
-                    placeholder="Brief description of the circle's purpose..."
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-3">
-                    <label className="block text-sm font-semibold text-slate-300">Number of Members</label>
-                    <input
-                      type="number"
-                      min="2"
-                      max="50"
-                      value={formData.numParticipants}
-                      onChange={(e) => handleNumParticipantsChange(Number(e.target.value))}
-                      className="w-full px-4 py-4 bg-white/5 border border-white/20 rounded-xl focus:outline-none focus:border-cyan-400 focus:bg-white/10 transition-all text-white"
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="block text-sm font-semibold text-slate-300">Contribution Amount (STRK)</label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      value={formData.contributionAmount}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, contributionAmount: e.target.value }))}
-                      className="w-full px-4 py-4 bg-white/5 border border-white/20 rounded-xl focus:outline-none focus:border-cyan-400 focus:bg-white/10 transition-all text-white placeholder-slate-400"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="block text-sm font-semibold text-slate-300">Round Duration</label>
-                    <select
-                      value={formData.roundDuration}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, roundDuration: Number(e.target.value) }))}
-                      className="w-full px-4 py-4 bg-white/5 border border-white/20 rounded-xl focus:outline-none focus:border-cyan-400 focus:bg-white/10 transition-all text-white"
-                    >
-                      {DURATION_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value} className="bg-slate-800 text-white">
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="text-xs text-slate-400">How often each member will contribute</p>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-slate-300">Participant Addresses</label>
-                  <div className="space-y-3">
-                    {formData.participantAddresses.map((address, index) => (
-                      <input
-                        key={index}
-                        type="text"
-                        value={address}
-                        onChange={(e) => updateParticipantAddress(index, e.target.value)}
-                        className="w-full px-4 py-4 bg-white/5 border border-white/20 rounded-xl focus:outline-none focus:border-cyan-400 focus:bg-white/10 transition-all text-white placeholder-slate-400"
-                        placeholder={`Participant ${index + 1} address`}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-sm text-slate-400">
-                    Make sure to include your own address in the participant list.
-                  </p>
-                </div>
-                <div className="flex justify-end space-x-4 pt-6">
+        )}
+
+        {/* Create Modal */}
+        {isCreateModalOpen && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#1a1a1a] border border-white/20 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-white">Create New Savings Circle</h2>
                   <button
                     onClick={() => setIsCreateModalOpen(false)}
-                    className="px-8 py-4 backdrop-blur-xl bg-white/10 border border-white/20 rounded-xl hover:bg-white/20 transition-all duration-300 text-white font-medium"
+                    className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
                   >
-                    Cancel
+                    <X className="w-5 h-5" />
                   </button>
-                  <button
-                    onClick={createGroup}
-                    className="group relative px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition-all duration-300 font-bold rounded-xl text-white shadow-2xl shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-xl blur opacity-30 group-hover:opacity-50 transition-opacity" />
-                    <div className="relative flex items-center">
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Create Circle
+                </div>
+
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Circle Name</label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white placeholder-gray-500"
+                      placeholder="e.g., Family Savings Group"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white placeholder-gray-500"
+                      rows={3}
+                      placeholder="Brief description..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Members</label>
+                      <input
+                        type="number"
+                        min="2"
+                        value={formData.numParticipants}
+                        onChange={(e) => handleNumParticipantsChange(Number(e.target.value))}
+                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white"
+                      />
                     </div>
-                  </button>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Contribution (USDT)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={formData.contributionAmount}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, contributionAmount: e.target.value }))}
+                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white"
+                        placeholder="0.00"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Duration</label>
+                      <select
+                        value={formData.roundDuration}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, roundDuration: Number(e.target.value) }))}
+                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white"
+                      >
+                        {DURATION_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value} className="bg-[#1a1a1a]">
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Participant Addresses</label>
+                    <div className="space-y-2">
+                      {formData.participantAddresses.map((address, index) => (
+                        <input
+                          key={index}
+                          type="text"
+                          value={address}
+                          onChange={(e) => updateParticipantAddress(index, e.target.value)}
+                          className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white placeholder-gray-500"
+                          placeholder={`Participant ${index + 1} address`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-3 pt-4">
+                    <button
+                      onClick={() => setIsCreateModalOpen(false)}
+                      className="px-6 py-3 bg-white/5 border border-white/20 rounded-lg text-white hover:bg-white/10 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={createGroup}
+                      className="px-6 py-3 bg-white text-black rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                    >
+                      Create Circle
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
   )
 }
-
-export default Dashboard
