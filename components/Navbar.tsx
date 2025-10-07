@@ -18,14 +18,25 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-cyan-500/20 bg-gradient-to-r from-slate-900/90 via-blue-900/90 to-purple-900/90 backdrop-blur-xl">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center space-x-2 group">
-          <img 
-            src="/logo.png" 
-            alt="Ahjoor Logo" 
-            className="h-20 w-auto transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-lg group-hover:drop-shadow-cyan-500/50"
-          />
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-black">
+      <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <img src="/logo.png" alt="Ahjoor Logo" className="h-16 w-auto" />
+        </div>
+
+        <div className="hidden md:flex items-center space-x-8">
+          <a href="#home" className="text-white hover:text-gray-300 transition-colors font-medium">
+            Home
+          </a>
+          <a href="#how-it-works" className="text-white hover:text-gray-300 transition-colors font-medium">
+            How It Works
+          </a>
+          <a href="#features" className="text-white hover:text-gray-300 transition-colors font-medium">
+            Features
+          </a>
+          <a href="#faqs" className="text-white hover:text-gray-300 transition-colors font-medium">
+            FAQs
+          </a>
         </div>
 
         {isConnected && account ? (
@@ -33,9 +44,9 @@ export default function Navbar() {
         ) : (
           <button
             onClick={() => setIsOpen(true)}
-            className="px-6 py-2 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-500 transition-all duration-300 rounded-lg font-medium text-white shadow-lg hover:shadow-xl hover:shadow-cyan-500/25 hover:scale-105 border border-cyan-500/30"
+            className="px-6 py-2.5 border border-white rounded-lg font-medium text-white hover:bg-white hover:text-black transition-all duration-300"
           >
-            Connect Wallet
+            Get Started
           </button>
         )}
       </div>
@@ -43,19 +54,17 @@ export default function Navbar() {
       <Dialog.Root open={isOpen} onOpenChange={() => setIsOpen(!isOpen)}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40" />
-          <Dialog.Content className="fixed z-50 top-1/2 left-1/2 w-[90vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-gradient-to-br from-slate-900/95 via-blue-900/95 to-purple-900/95 backdrop-blur-xl p-6 shadow-2xl border border-cyan-500/30 shadow-cyan-500/10">
+          <Dialog.Content className="fixed z-50 top-1/2 left-1/2 w-[90vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-zinc-900 p-6 shadow-2xl border border-white/10">
             <div className="flex items-center justify-between mb-4">
-              <Dialog.Title className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                Connect Wallet
-              </Dialog.Title>
+              <Dialog.Title className="text-xl font-bold text-white">Connect Wallet</Dialog.Title>
               <Dialog.Close asChild>
-                <button className="text-gray-400 hover:text-red-400 transition-colors duration-200 hover:scale-110">
+                <button className="text-gray-400 hover:text-white transition-colors duration-200">
                   <X />
                 </button>
               </Dialog.Close>
             </div>
 
-            <p className="text-sm text-gray-300 mb-6">
+            <p className="text-sm text-gray-400 mb-6">
               Choose a wallet to continue to your decentralized savings circle.
             </p>
 
@@ -64,7 +73,7 @@ export default function Navbar() {
                 <button
                   key={connector.id}
                   onClick={() => handleConnect(connector)}
-                  className="w-full py-3 rounded-lg bg-gradient-to-r from-cyan-600/80 via-blue-600/80 to-purple-600/80 hover:from-cyan-500 hover:via-blue-500 hover:to-purple-500 text-white font-semibold transition-all duration-300 border border-cyan-500/30 hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-500/25 hover:scale-[1.02]"
+                  className="w-full py-3 rounded-lg bg-white text-black font-semibold hover:bg-gray-200 transition-all duration-300"
                 >
                   {connector.name}
                 </button>
@@ -81,14 +90,14 @@ function ProfileBar({ address }: { address: string }) {
   const { disconnect } = useDisconnect()
 
   return (
-    <div className="flex items-center space-x-3 px-4 py-2 rounded-full border border-cyan-500/30 bg-gradient-to-r from-slate-800/80 via-blue-900/80 to-purple-900/80 backdrop-blur-sm shadow-lg">
-      <UserCircle2 className="w-5 h-5 text-cyan-400" />
-      <span className="text-sm bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent font-medium">
+    <div className="flex items-center space-x-3 px-4 py-2 rounded-lg border border-white/20 bg-white/5">
+      <UserCircle2 className="w-5 h-5 text-white" />
+      <span className="text-sm text-white font-medium">
         {address.slice(0, 6)}...{address.slice(-4)}
       </span>
       <button
         onClick={() => disconnect()}
-        className="text-sm text-gray-400 hover:text-red-400 transition-colors duration-200 hover:scale-105 px-2 py-1 rounded hover:bg-red-500/10"
+        className="text-sm text-gray-400 hover:text-white transition-colors duration-200 px-2 py-1 rounded hover:bg-white/10"
       >
         Disconnect
       </button>
