@@ -41,7 +41,7 @@ export function WhyAhjoor() {
   ]
 
   return (
-    <section className="bg-black py-16 px-4 sm:py-24">
+    <section id="features" className="bg-black py-16 px-4 sm:py-24 scroll-mt-20">
       <div className="mx-auto max-w-7xl">
         <h2 className="mb-12 text-center font-serif text-4xl text-white sm:mb-16 sm:text-5xl">Why Ahjoor?</h2>
 

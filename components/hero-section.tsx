@@ -1,6 +1,6 @@
 export function HeroSection() {
   return (
-    <section className="bg-black pt-44 pb-9 px-10 text-center">
+    <section id="home" className="bg-black pt-44 pb-9 px-10 text-center scroll-mt-20">
       <div className="mx-auto max-w-5xl">
         <h1 className="font-serif text-5xl font-normal text-white md:text-6xl lg:text-7xl">
           Earn Together... Save Together

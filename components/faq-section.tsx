@@ -20,7 +20,7 @@ export function FAQSection() {
   ]
 
   return (
-    <section className="py-16 px-4 bg-black">
+    <section id="faqs" className="py-16 px-4 bg-black scroll-mt-20">
       <div className="max-w-4xl mx-auto">
         {/* CTA Button */}
         <div className="flex justify-center mb-12">
