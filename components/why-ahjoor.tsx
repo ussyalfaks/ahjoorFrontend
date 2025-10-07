@@ -54,7 +54,7 @@ export function WhyAhjoor() {
                 background: "linear-gradient(135deg, #FFFDFD 0%, #999898 100%)",
               }}
             >
-              <div className="flex h-full flex-col items-center rounded-3xl bg-[#3a3a3a] px-6 py-10 text-center sm:px-8 sm:py-12">
+              <div className="flex h-full flex-col items-center rounded-3xl bg-[#3a3a3a] px-6 py-10 lg:py-24 text-center sm:px-8 sm:py-12">
                 <div className="mb-6 rounded-2xl bg-[#6b6b6b] p-4">
                   <feature.icon className="h-8 w-8 text-[#2a2a2a]" strokeWidth={1.5} />
                 </div>
