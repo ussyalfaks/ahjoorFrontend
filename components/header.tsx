@@ -18,27 +18,8 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-black">
-      <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <img src="/logo.png" alt="Ahjoor Logo" className="h-16 w-auto" />
-        </div>
-
-        <div className="hidden md:flex items-center space-x-8">
-          <a href="#home" className="text-white hover:text-gray-300 transition-colors font-medium">
-            Home
-          </a>
-          <a href="#how-it-works" className="text-white hover:text-gray-300 transition-colors font-medium">
-            How It Works
-          </a>
-          <a href="#features" className="text-white hover:text-gray-300 transition-colors font-medium">
-            Features
-          </a>
-          <a href="#faqs" className="text-white hover:text-gray-300 transition-colors font-medium">
-            FAQs
-          </a>
-        </div>
-
+    <nav className="fixed top-0 z-10 left-64 right-0 border-b border-white/10 bg-black">
+      <div className="container mx-auto px-4 h-20 flex items-center justify-end">
         {isConnected && account ? (
           <ProfileBar address={account.address} />
         ) : (
@@ -46,7 +27,7 @@ export default function Navbar() {
             onClick={() => setIsOpen(true)}
             className="px-6 py-2.5 border border-white rounded-lg font-medium text-white hover:bg-white hover:text-black transition-all duration-300"
           >
-            Get Started
+            Connect Wallet
           </button>
         )}
       </div>

@@ -1,11 +1,12 @@
-import Navbar from "../../components/Navbar";
 import Dashboard from "../../components/pages/Dashboard";
+import DashboardLayout from "@/components/dashboard-layout"
 
 export default function DashboardPage() {
   return (
-    <>
-      <Navbar />
+    <> 
+    <DashboardLayout>
       <Dashboard />
+       </DashboardLayout>
     </>
   );
 }
