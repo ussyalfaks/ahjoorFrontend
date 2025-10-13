@@ -4,17 +4,24 @@ import * as Dialog from "@radix-ui/react-dialog"
 import { X, UserCircle2 } from "lucide-react"
 import { useState } from "react"
 import { useConnect, useAccount, type Connector, useDisconnect } from "@starknet-react/core"
+import { useRouter } from "next/navigation"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter()
 
   const { connectors, connectAsync } = useConnect()
-
   const { account, isConnected } = useAccount()
 
   const handleConnect = async (connector: Connector) => {
-    await connectAsync({ connector })
-    setIsOpen(false)
+    try {
+      await connectAsync({ connector })
+      setIsOpen(false)
+      // Navigate to dashboard after successful connection
+      router.push("/dashboard")
+    } catch (error) {
+      console.error("Connection failed:", error)
+    }
   }
 
   return (
