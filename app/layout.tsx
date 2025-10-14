@@ -24,15 +24,10 @@ export default function RootLayout({
   });
 
   const rpc = useCallback((_chain: Chain) => {
-    // Use CORS-enabled RPC endpoints only
-    const endpoints = [
-      'https://starknet-sepolia.public.blastapi.io',
-      'https://rpc.sepolia.starknet.io',
-      'https://rpc.starknet-testnet.lava.build',
-    ].filter(Boolean);
-
+    // Use reliable, CORS-enabled RPC endpoints for Sepolia testnet
+    // Removed bad endpoints that cause ERR_NAME_NOT_RESOLVED
     return {
-      nodeUrl: endpoints[Math.floor(Math.random() * endpoints.length)]
+      nodeUrl: 'https://starknet-sepolia.public.blastapi.io'
     };
   }, []);
 

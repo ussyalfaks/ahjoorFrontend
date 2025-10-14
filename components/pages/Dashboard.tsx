@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react"
 import { X, Users, DollarSign, Calendar, Clock, TrendingUp, Wallet } from "lucide-react"
 import { ROSCA_ABI } from "@/constants/abi"
-import { CONTRACT_ADDRESS } from "@/constants"
+import { CONTRACT_ADDRESS, TOKEN_OPTIONS, getTokenByAddress, STRK_TOKEN_ADDRESS } from "@/constants"
 import { useContract, useReadContract, useSendTransaction, useAccount } from "@starknet-react/core"
 import { shortString } from "starknet"
 
@@ -64,6 +64,7 @@ type Group = {
   isCompleted: boolean
   createdAt: number
   lastPayoutTime: number
+  tokenAddress: string
 }
 
 export default function OverviewPage() {
@@ -78,28 +79,26 @@ export default function OverviewPage() {
     contributionAmount: "",
     roundDuration: 86400, // 1 day in seconds (now a number)
     participantAddresses: [""],
+    tokenAddress: STRK_TOKEN_ADDRESS, // Default to STRK
   })
   const { sendAsync } = useSendTransaction({ calls: [] })
   const { contract } = useContract({
     abi: ROSCA_ABI,
     address: CONTRACT_ADDRESS,
   })
-  // STRK token contract for approvals
-  const { contract: strkContract } = useContract({
-    abi: [
-      {
-        name: "approve",
-        type: "function",
-        inputs: [
-          { name: "spender", type: "core::starknet::contract_address::ContractAddress" },
-          { name: "amount", type: "core::integer::u256" },
-        ],
-        outputs: [{ type: "core::bool" }],
-        state_mutability: "external",
-      },
-    ],
-    address: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-  })
+  // ERC20 ABI for token approvals (reusable for any token)
+  const ERC20_ABI = [
+    {
+      name: "approve",
+      type: "function",
+      inputs: [
+        { name: "spender", type: "core::starknet::contract_address::ContractAddress" },
+        { name: "amount", type: "core::integer::u256" },
+      ],
+      outputs: [{ type: "core::bool" }],
+      state_mutability: "external",
+    },
+  ] as const
   const { data: groupCount, isFetching } = useReadContract({
     abi: ROSCA_ABI,
     address: CONTRACT_ADDRESS,
@@ -128,6 +127,7 @@ export default function OverviewPage() {
             isCompleted: groupInfo.is_completed,
             createdAt: Number(groupInfo.created_at),
             lastPayoutTime: Number(groupInfo.last_payout_time),
+            tokenAddress: formatAddress(groupInfo.token_address),
           })
         } catch (error) {
           console.error(`Error fetching group ${i}:`, error)
@@ -167,8 +167,11 @@ export default function OverviewPage() {
       return
     }
     try {
-      // Convert STRK amount to wei (18 decimals)
-      const contributionAmountWei = BigInt(Math.floor(Number(formData.contributionAmount) * 1e18))
+      // Get token info for decimal conversion
+      const selectedToken = TOKEN_OPTIONS.find(t => t.address === formData.tokenAddress)
+      const decimals = selectedToken?.decimals || 18
+      const contributionAmountWei = BigInt(Math.floor(Number(formData.contributionAmount) * Math.pow(10, decimals)))
+      
       const calls = (contract as any).populate("create_group", [
         shortString.encodeShortString(formData.name),
         shortString.encodeShortString(formData.description),
@@ -176,6 +179,7 @@ export default function OverviewPage() {
         contributionAmountWei,
         formData.roundDuration,
         validAddresses,
+        formData.tokenAddress,
       ])
       if (calls) {
         await sendAsync([calls])
@@ -188,6 +192,7 @@ export default function OverviewPage() {
           contributionAmount: "",
           roundDuration: 86400,
           participantAddresses: [""],
+          tokenAddress: STRK_TOKEN_ADDRESS,
         })
       }
     } catch (error) {
@@ -197,21 +202,29 @@ export default function OverviewPage() {
   }
 
   const contribute = async (groupId: string) => {
-    if (!contract || !strkContract) return
+    if (!contract) return
     try {
       const groupInfo = await contract.get_group_info(BigInt(groupId))
       const contributionAmount = groupInfo.contribution_amount
-      const contributionAmountDisplay = formatStrkAmount(contributionAmount.toString())
+      const tokenAddress = formatAddress(groupInfo.token_address)
+      const tokenInfo = getTokenByAddress(tokenAddress)
+      
+      // Format amount based on token decimals
+      const amountDisplay = Number(contributionAmount.toString()) / Math.pow(10, tokenInfo.decimals)
       const confirmed = confirm(
-        `Are you sure you want to contribute ${contributionAmountDisplay} USDT to this group? This will automatically approve and contribute in one transaction.`,
+        `Are you sure you want to contribute ${amountDisplay.toFixed(tokenInfo.decimals === 6 ? 2 : 6)} ${tokenInfo.symbol} to this group? This will automatically approve and contribute in one transaction.`,
       )
       if (!confirmed) return
-      if (!strkContract || !contract) {
-        alert("Contracts not available. Please refresh and try again.")
-        return
+      
+      // Construct approve call for the specific token
+      const approveCall = {
+        contractAddress: tokenAddress,
+        entrypoint: "approve",
+        calldata: [CONTRACT_ADDRESS, contributionAmount.toString()],
       }
-      const approveCall = (strkContract as any).populate("approve", [CONTRACT_ADDRESS, contributionAmount])
+      
       const contributeCall = (contract as any).populate("contribute", [BigInt(groupId)])
+      
       if (approveCall && contributeCall) {
         await sendAsync([approveCall, contributeCall])
         alert("Contribution made successfully!")
@@ -430,7 +443,11 @@ export default function OverviewPage() {
                           <DollarSign className="w-4 h-4 text-white" />
                         </div>
                         <span className="text-white font-semibold">
-                          {formatStrkAmount(group.contributionAmount)} USDT
+                          {(() => {
+                            const tokenInfo = getTokenByAddress(group.tokenAddress)
+                            const amount = Number(group.contributionAmount) / Math.pow(10, tokenInfo.decimals)
+                            return `${amount.toFixed(tokenInfo.decimals === 6 ? 2 : 6)} ${tokenInfo.symbol}`
+                          })()}
                         </span>
                       </div>
                     </div>
@@ -465,7 +482,11 @@ export default function OverviewPage() {
                           onClick={() => contribute(group.id)}
                           className="px-4 py-2 bg-[#4a6b7c] text-white rounded-lg text-sm font-medium hover:bg-[#5a7b8c] transition-colors"
                         >
-                          Make Contribution ({formatStrkAmount(group.contributionAmount)} USDT)
+                          Make Contribution ({(() => {
+                            const tokenInfo = getTokenByAddress(group.tokenAddress)
+                            const amount = Number(group.contributionAmount) / Math.pow(10, tokenInfo.decimals)
+                            return `${amount.toFixed(tokenInfo.decimals === 6 ? 2 : 6)} ${tokenInfo.symbol}`
+                          })()})
                         </button>
                         {group.currentRound === 1 && (
                           <button
@@ -522,7 +543,7 @@ export default function OverviewPage() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 gap-4 mb-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">Members</label>
                       <input
@@ -531,18 +552,6 @@ export default function OverviewPage() {
                         value={formData.numParticipants}
                         onChange={(e) => handleNumParticipantsChange(Number(e.target.value))}
                         className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Contribution (USDT)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={formData.contributionAmount}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, contributionAmount: e.target.value }))}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white"
-                        placeholder="0.00"
                       />
                     </div>
 
@@ -559,6 +568,37 @@ export default function OverviewPage() {
                           </option>
                         ))}
                       </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Token</label>
+                      <select
+                        value={formData.tokenAddress}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, tokenAddress: e.target.value }))}
+                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white"
+                      >
+                        {TOKEN_OPTIONS.map((token) => (
+                          <option key={token.address} value={token.address} className="bg-[#1a1a1a]">
+                            {token.name} ({token.symbol})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Contribution ({TOKEN_OPTIONS.find(t => t.address === formData.tokenAddress)?.symbol || 'Token'})
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={formData.contributionAmount}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, contributionAmount: e.target.value }))}
+                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white"
+                        placeholder="0.00"
+                      />
                     </div>
                   </div>
 
