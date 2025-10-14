@@ -62,7 +62,7 @@ type Group = {
   roundDuration: number
   currentRound: number
   isCompleted: boolean
-  createdAt: number
+  createdAt: numberhttps://github.com/Emeka000/ahjoorFrontend.git
   lastPayoutTime: number
 }
 

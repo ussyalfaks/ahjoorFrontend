@@ -15,9 +15,9 @@ export function SupportedBy() {
             className="h-8 md:h-10 w-auto opacity-90 hover:opacity-100 transition-opacity"
           />
           <img
-            src="/assets/XLM.png"
-            alt="Stellar"
-            className="h-8 md:h-10 w-auto opacity-90 hover:opacity-100 transition-opacity"
+            //src="/assets/XLM.png"
+           // alt="Stellar"
+           // className="h-8 md:h-10 w-auto opacity-90 hover:opacity-100 transition-opacity"
           />
           <img
             src="/assets/BASE.png"
