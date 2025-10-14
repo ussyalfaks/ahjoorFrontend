@@ -3,7 +3,7 @@ export function HeroSection() {
     <section id="home" className="bg-black pt-44 pb-9 px-10 text-center scroll-mt-20">
       <div className="mx-auto max-w-5xl">
         <h1 className="font-serif text-5xl font-normal text-white md:text-6xl lg:text-7xl">
-            Save With Friends.. Save with Ahjoor
+            Earn Together.. Save Together
         </h1>
         <p className="mt-10 text-xl text-white md:text-2xl">All on Your Decentralized Savings Group In One Place</p>
         <div className="mt-10 inline-flex">
