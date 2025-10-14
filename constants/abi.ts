@@ -97,6 +97,10 @@ export const ROSCA_ABI = [
       {
         "name": "last_payout_time",
         "type": "core::integer::u64"
+      },
+      {
+        "name": "token_address",
+        "type": "core::starknet::contract_address::ContractAddress"
       }
     ]
   },
@@ -131,6 +135,10 @@ export const ROSCA_ABI = [
           {
             "name": "participant_addresses",
             "type": "core::array::Array::<core::starknet::contract_address::ContractAddress>"
+          },
+          {
+            "name": "token_address",
+            "type": "core::starknet::contract_address::ContractAddress"
           }
         ],
         "outputs": [
@@ -274,6 +282,22 @@ export const ROSCA_ABI = [
         "outputs": [
           {
             "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "is_token_supported",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "token_address",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
           }
         ],
         "state_mutability": "view"
@@ -475,4 +499,4 @@ export const ROSCA_ABI = [
       }
     ]
   }
-]as const;
+] as const;
