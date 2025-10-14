@@ -1,94 +1,83 @@
-# Ahjoor Savings
+Ahjoor Savings isn’t just a dApp — it’s a community-driven financial coordination tool. Here’s how we’re building it step by step:
 
-Ahjoor Savings is a community savings platform that helps people save money together in groups called savings circles. Think of it like a digital "tontine" where friends, family, or community members pool their money and take turns receiving the total amount.
+Phase 1: MVP (Current)
 
-**What is a Savings Circle?**
-- A group of people who agree to save a fixed amount regularly (weekly/monthly)
-- Each member takes turns receiving the entire pool when it's their turn
-- Everyone gets their chance to receive a lump sum, making it easier to reach financial goals
+✅ Deploy core Savings Circle smart contract on Starknet testnet
 
-Built with Next.js, Tailwind CSS, and powered by Starknet blockchain technology for security and transparency.
+✅ Enable wallet connection (Argent X, Braavos)
 
-### CONTRACT_ADDRESS = "0x0794fb034e45f9a538ea4dfbbc93378fe49e32542ad55425de69832ec905c853";
+✅ Create & join savings groups
 
-### CONTRACT REPO= https://github.com/ussyalfaks/ahjoor
----
+✅ Contribution + payout cycle
 
-## 🚀 How to Run Locally
+✅ Basic dashboard to track progress
 
-Want to try it out on your computer? Here's how:
+Phase 2: Community Launch
 
-### 1. First, install the required packages
-```bash
-npm install or npm install --legacy-peer-deps
-```
+🚀 Deploy to Starknet Mainnet
 
-### 2. Start the development server
-```bash
-npm run dev
-```
+🌍 Onboard first 100–500 savings circles in Nigeria & West Africa
 
-### 3. Open your browser
-Go to [http://localhost:3000](http://localhost:3000) and you'll see the app running!
+📱 Mobile-friendly UI/UX for easy adoption
 
----
+🔔 Add reminders & notifications for contributions
 
-## ✨ What You Can Do
+📑 Basic analytics for group admins (who paid, who’s next, etc.)
 
-- 🔗 **Connect Your Wallet** – works with Argent X & Braavos wallets
-- 👥 **Create a Savings Circle** – start a new group with your friends or community  
-- 💰 **Make Regular Contributions** – save your agreed amount each period
-- 🎯 **Receive Your Payout** – get the full pool amount when it's your turn
-- 📊 **Track Progress** – see how your circle is doing with a clean, easy-to-use interface
+Phase 3: Growth & Trust Layer
 
----
+🔒 Introduce reputation scoring for members (track reliability)
 
-## 📜 Smart Contract Functions
+🪙 Integrate stablecoin support (USDC/DAI/NGN tokens)
 
-The contract is written in **Cairo** and deployed to Starknet Sepolia Testnet.
+🔗 Add cross-border savings circles for diaspora communities
 
-- `create_group(name, description, num_participants, contribution_amount, round_duration, participant_addresses)`
-- `contribute(group_id)`
-- `claim_payout(group_id)`
-- `get_group_info(group_id)`
-- `get_group_count()`
+💼 Partnerships with cooperatives, churches, and trade unions
 
----
+📲 Launch mobile app (iOS/Android)
 
-## 🛠️ Tech Stack
+Phase 4: Financial Services Expansion
 
-| Layer      | Technology             |
-| ---------- | ---------------------- |
-| Frontend   | Next.js 15, TypeScript |
-| UI         | Tailwind CSS           |
-| Blockchain | Starknet, Cairo        |
-| Wallets    | Argent X, Braavos      |
-| State      | React Hooks            |
+💳 Introduce credit scoring & micro-loans based on savings history
 
----
+🏦 Integration with fintech & banks for cash-in/cash-out
 
-## 🗂 Project Structure
+🛡️ Offer insurance & financial literacy tools
 
-```
-frontend/
-├── app/                # App router pages
-├── components/         # React components
-├── constants/          # Contract ABI and addresses
-└── README.md
-```
+📈 Build an API layer for developers to integrate Ahjoor savings circles into other fintech apps
 
----
+Business Model
 
-## 🔗 Resources
+Transaction Fees: Small service fee on each contribution/payout (e.g., 0.5–1%)
 
-- [Starknet Docs](https://docs.starknet.io/)
-- [Cairo Book](https://book.cairo-lang.org/)
-- [Starknet React](https://github.com/apibara/starknet-react)
-- [Next.js App Router](https://nextjs.org/docs/app)
+Premium Circles: Advanced features (analytics, larger group sizes, faster payouts) for a subscription
 
----
+Partnership Revenue: Collaborations with cooperatives, banks, and remittance companies
 
-## 👩🏾‍💻 About
+Data Insights (opt-in): Anonymous, aggregated financial behavior insights for research/impact measurement
 
-Built with ❤️ to help communities save money together through Ahjoor Savings
+Roadmap & Business Model
 
+Ahjoor Savings is building the future of community-driven finance.
+
+📅 Roadmap Timeline
+Phase	Timeline	Goals
+MVP (Now)	✅ - Deploy savings circle smart contract on Starknet testnet
+- Wallet connection (Argent X, Braavos)
+- Create & join groups
+- Contributions & payouts
+- Basic dashboard
+Community Launch	2025 Q2–Q3	- Deploy to Starknet Mainnet
+- Onboard first 500 circles (Nigeria & West Africa)
+- Mobile-friendly UI/UX
+- Contribution reminders
+- Stablecoin support (USDC/DAI/NGN tokens)
+- Basic analytics for admins
+Growth & Trust Layer	2025 Q4 – 2026 Q1	- Reputation scoring for members
+- Cross-border diaspora circles
+- Partnerships with cooperatives & unions
+- Mobile apps (iOS/Android)
+Financial Services Expansion	2026+	- Credit scoring & micro-loans
+- Cash-in/cash-out via fintech & banks
+- Insurance & financial literacy tools
+- Open API layer for fintech integrations
