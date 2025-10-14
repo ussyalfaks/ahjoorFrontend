@@ -10,9 +10,20 @@ export const TOKEN_OPTIONS = [
   { name: "USDC", address: USDC_TOKEN_ADDRESS || "0x053b40a647cedfca6ca84f542a0fe36736031905a9639a7f19a3c1e66bfd5080", symbol: "USDC", decimals: 6 },
 ] as const;
 
+// Helper to normalize address for comparison (handles different padding)
+const normalizeAddress = (address: string): string => {
+  try {
+    // Convert to BigInt and back to hex to remove leading zeros
+    return "0x" + BigInt(address).toString(16).toLowerCase();
+  } catch {
+    return address.toLowerCase();
+  }
+};
+
 // Helper to get token info by address
 export const getTokenByAddress = (address: string) => {
+  const normalizedInput = normalizeAddress(address);
   return TOKEN_OPTIONS.find(
-    (token) => token.address.toLowerCase() === address.toLowerCase()
+    (token) => normalizeAddress(token.address) === normalizedInput
   ) || { name: "Unknown", symbol: "Unknown", decimals: 18 };
 };

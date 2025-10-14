@@ -4,7 +4,7 @@ import { X, Users, DollarSign, Calendar, Clock, TrendingUp, Wallet } from "lucid
 import { ROSCA_ABI } from "@/constants/abi"
 import { CONTRACT_ADDRESS, TOKEN_OPTIONS, getTokenByAddress, STRK_TOKEN_ADDRESS } from "@/constants"
 import { useContract, useReadContract, useSendTransaction, useAccount } from "@starknet-react/core"
-import { shortString } from "starknet"
+import { shortString, cairo, byteArray } from "starknet"
 
 // Utility function to format STRK amounts from wei
 const formatStrkAmount = (weiAmount: string): string => {
@@ -115,10 +115,39 @@ export default function OverviewPage() {
       for (let i = 1; i <= count; i++) {
         try {
           const groupInfo = await contract.get_group_info(i)
+          
+          // Try to decode ByteArray - check if it's already a string or needs conversion
+          let name = "Unknown Group"
+          let description = "No description"
+          
+          try {
+            // If it's already a string, use it directly
+            if (typeof groupInfo.name === 'string') {
+              name = groupInfo.name
+            } else if (groupInfo.name && typeof groupInfo.name === 'object') {
+              // If it's a ByteArray object, convert it
+              name = byteArray.stringFromByteArray(groupInfo.name)
+            }
+          } catch (e) {
+            console.warn(`Could not decode name for group ${i}:`, e)
+          }
+          
+          try {
+            // If it's already a string, use it directly
+            if (typeof groupInfo.description === 'string') {
+              description = groupInfo.description
+            } else if (groupInfo.description && typeof groupInfo.description === 'object') {
+              // If it's a ByteArray object, convert it
+              description = byteArray.stringFromByteArray(groupInfo.description)
+            }
+          } catch (e) {
+            console.warn(`Could not decode description for group ${i}:`, e)
+          }
+          
           fetchedGroups.push({
             id: i.toString(),
-            name: shortString.decodeShortString(groupInfo.name.toString()),
-            description: shortString.decodeShortString(groupInfo.description.toString()),
+            name,
+            description,
             organizer: formatAddress(groupInfo.organizer),
             numParticipants: Number(groupInfo.num_participants),
             contributionAmount: groupInfo.contribution_amount.toString(),
@@ -131,6 +160,7 @@ export default function OverviewPage() {
           })
         } catch (error) {
           console.error(`Error fetching group ${i}:`, error)
+          // Skip corrupted groups
         }
       }
       setGroups(fetchedGroups)
@@ -173,8 +203,8 @@ export default function OverviewPage() {
       const contributionAmountWei = BigInt(Math.floor(Number(formData.contributionAmount) * Math.pow(10, decimals)))
       
       const calls = (contract as any).populate("create_group", [
-        shortString.encodeShortString(formData.name),
-        shortString.encodeShortString(formData.description),
+        formData.name,
+        formData.description,
         formData.numParticipants,
         contributionAmountWei,
         formData.roundDuration,
@@ -217,10 +247,11 @@ export default function OverviewPage() {
       if (!confirmed) return
       
       // Construct approve call for the specific token
+      const u256Amount = cairo.uint256(contributionAmount)
       const approveCall = {
         contractAddress: tokenAddress,
         entrypoint: "approve",
-        calldata: [CONTRACT_ADDRESS, contributionAmount.toString()],
+        calldata: [CONTRACT_ADDRESS, u256Amount.low, u256Amount.high],
       }
       
       const contributeCall = (contract as any).populate("contribute", [BigInt(groupId)])

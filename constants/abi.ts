@@ -499,4 +499,4 @@ export const ROSCA_ABI = [
       }
     ]
   }
-]as const;
+] as const;
