@@ -21,6 +21,7 @@ export default function RootLayout({
   const { connectors } = useInjectedConnectors({
     recommended: [argent(), braavos()],
     includeRecommended: 'always',
+    order: 'random',
   });
 
   const rpc = useCallback((_chain: Chain) => {

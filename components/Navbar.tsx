@@ -2,20 +2,35 @@
 
 import * as Dialog from "@radix-ui/react-dialog"
 import { X, UserCircle2 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useConnect, useAccount, type Connector, useDisconnect } from "@starknet-react/core"
 import { useRouter } from "next/navigation"
+
+const WALLET_STORAGE_KEY = "starknet-last-wallet"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
 
-  const { connectors, connectAsync } = useConnect()
+  const { connectors, connectAsync, connect } = useConnect()
   const { account, isConnected } = useAccount()
+
+  // Auto-reconnect on mount if wallet was previously connected
+  useEffect(() => {
+    const lastWallet = localStorage.getItem(WALLET_STORAGE_KEY)
+    if (lastWallet && !isConnected) {
+      const connector = connectors.find((c) => c.id === lastWallet)
+      if (connector) {
+        connect({ connector })
+      }
+    }
+  }, [connectors, connect, isConnected])
 
   const handleConnect = async (connector: Connector) => {
     try {
       await connectAsync({ connector })
+      // Save connector ID to localStorage
+      localStorage.setItem(WALLET_STORAGE_KEY, connector.id)
       setIsOpen(false)
       // Navigate to dashboard after successful connection
       router.push("/dashboard")
@@ -96,6 +111,12 @@ export default function Navbar() {
 function ProfileBar({ address }: { address: string }) {
   const { disconnect } = useDisconnect()
 
+  const handleDisconnect = () => {
+    // Clear saved wallet from localStorage
+    localStorage.removeItem(WALLET_STORAGE_KEY)
+    disconnect()
+  }
+
   return (
     <div className="flex items-center space-x-3 px-4 py-2 rounded-lg border border-white/20 bg-white/5">
       <UserCircle2 className="w-5 h-5 text-white" />
@@ -103,7 +124,7 @@ function ProfileBar({ address }: { address: string }) {
         {address.slice(0, 6)}...{address.slice(-4)}
       </span>
       <button
-        onClick={() => disconnect()}
+        onClick={handleDisconnect}
         className="text-sm text-gray-400 hover:text-white transition-colors duration-200 px-2 py-1 rounded hover:bg-white/10"
       >
         Disconnect
