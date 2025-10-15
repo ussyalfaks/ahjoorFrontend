@@ -110,11 +110,26 @@ export default function OverviewPage() {
   useEffect(() => {
     const fetchGroups = async () => {
       if (!contract || !groupCount) return
+      
+      // If wallet is not connected, show no groups
+      if (!isConnected || !address) {
+        setGroups([])
+        return
+      }
+      
       const count = Number(groupCount)
       const fetchedGroups = []
       for (let i = 1; i <= count; i++) {
         try {
           const groupInfo = await contract.get_group_info(i)
+          
+          // Check if the connected wallet is a participant of this group
+          const isParticipant = await contract.is_participant(i, address)
+          
+          // Only show groups where the connected wallet is a member
+          if (!isParticipant) {
+            continue
+          }
           
           // Try to decode ByteArray - check if it's already a string or needs conversion
           let name = "Unknown Group"
@@ -166,7 +181,7 @@ export default function OverviewPage() {
       setGroups(fetchedGroups)
     }
     fetchGroups()
-  }, [contract, groupCount])
+  }, [contract, groupCount, isConnected, address])
 
   const createGroup = async () => {
     if (!contract) return
@@ -232,6 +247,12 @@ export default function OverviewPage() {
   }
 
   const contribute = async (groupId: string) => {
+    // Check if wallet is connected
+    if (!isConnected || !address) {
+      alert("Please connect your wallet to make a contribution.")
+      return
+    }
+    
     if (!contract) return
     try {
       const groupInfo = await contract.get_group_info(BigInt(groupId))
@@ -247,7 +268,7 @@ export default function OverviewPage() {
       if (!confirmed) return
       
       // Construct approve call for the specific token
-      const u256Amount = cairo.uint256(contributionAmount)
+      const u256Amount = cairo.uint256(contributionAmount.toString())
       const approveCall = {
         contractAddress: tokenAddress,
         entrypoint: "approve",
@@ -267,11 +288,22 @@ export default function OverviewPage() {
   }
 
   const claimPayout = async (groupId: string) => {
+    // Check if wallet is connected
+    if (!isConnected || !address) {
+      alert("Please connect your wallet to claim payout.")
+      return
+    }
+    
     if (!contract) return
-    const calls = (contract as any).populate("claim_payout", [BigInt(groupId)])
-    if (calls) {
-      await sendAsync([calls])
-      alert("Payout claimed successfully!")
+    try {
+      const calls = (contract as any).populate("claim_payout", [BigInt(groupId)])
+      if (calls) {
+        await sendAsync([calls])
+        alert("Payout claimed successfully!")
+      }
+    } catch (error: any) {
+      console.error("Error claiming payout:", error)
+      alert("Failed to claim payout. Please try again.")
     }
   }
 
